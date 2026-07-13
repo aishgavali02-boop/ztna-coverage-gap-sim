@@ -22,7 +22,7 @@ isolates that the identity-centric baseline allows.
 pip install -r requirements.txt
 python make_artifacts.py
 ```
-Outputs land in `artifacts/`: results_scenarios.csv, results_sweep.csv, and fig1-3 (png+pdf).
+Outputs are included in this repo (results_scenarios.csv, results_sweep.csv, fig1–3 as png+pdf). Running make_artifacts.py regenerates them into an artifacts/ folder.
 
 ## Parameters
 tau = 0.70, floor = 0.40, W_baseline = {identity 0.70, device 0.15, network 0.15},
