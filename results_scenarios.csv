@@ -1,0 +1,8 @@
+scenario,S_identity,S_device,S_network,coord_decision,coord_composite,baseline_decision,baseline_composite,result
+Healthy,0.965,0.9775,0.95,ALLOW,0.9642,ALLOW,0.9646,agree_allow
+A_session_hijack,0.81,0.11,0.8475,ISOLATE,0.5892,ALLOW,0.7106,COVERAGE_GAP
+B_mild_drift,0.945,0.7325,0.86,ALLOW,0.8458,ALLOW,0.9004,agree_allow
+B_severe_drift,0.945,0.6025,0.86,ALLOW,0.8025,ALLOW,0.8809,agree_allow
+C_supply_chain,0.92,0.155,0.3175,ISOLATE,0.4642,ALLOW,0.7149,COVERAGE_GAP
+D_iiot_lateral,0.92,0.9225,0.2825,ISOLATE,0.7083,ALLOW,0.8248,COVERAGE_GAP
+E_identity_compromise,0.26,0.955,0.9,ISOLATE,0.705,ISOLATE,0.4603,both_isolate
