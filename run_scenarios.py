@@ -1,27 +1,26 @@
 """
-Run the four real scenarios (A-D) + E through scores.py -> hybrid_v4 decision.
-Scenario sub-signal inputs are set FROM THE NARRATIVE (what is compromised), NOT
-to hit a target layer score. Layer scores are COMPUTED by scores.py, then fed to
-the hybrid decide(). This is the first run with reasons-first sub-signal weights.
-OBSERVE the output; do NOT tune weights to it.
+Scenario definitions at sub-signal level, plus the layer-score helper.
 
-SCENARIO B RESOLUTION (locked):
-  B split into B_mild + B_severe. Both compute device ABOVE floor (0.73 / 0.60) and
-  both ALLOW under coordinated -> neither is a coverage gap. This is NOT tuned; it is
-  a consequence of the reasons-first device weights: hw_root_trust(0.30)+agent(0.25)=0.55
-  are hard-to-forge and stay intact under posture drift, so posture collapse alone cannot
-  drag device below the floor.
-  DECISION: Option 1 -- report B_severe as an HONEST LIMITATION, not a defect, and do NOT
-  lower the floor or reweight to force a gap (that would be tuning-to-outcome).
-    - CLASS limitation (citable): signal-based access control cannot catch a threat that
-      stays clean on its heavily-weighted/evaluated signals. Cite NIST SP 800-207 Sec 5.3
-      (valid attacker / insider operating within authorized purview). VERIFIED verbatim.
-    - SPECIFIC manifestation (disclosed, NOT cited): device=0.60 while posture~0.05 follows
-      directly from the Sec 2.4.1 weighting. Disclose as a consequence of disclosed params
-      (satisfies McIntosh disclosed-parameter bar); there is nothing external to cite for it.
-  SYED [2] DROPPED for this point: full paper read (incl. Sec VIII Discussion) -- Syed does
-  NOT state the within-pattern limitation. Do not cite Syed here. NIST 5.3 stands alone.
-  This blind spot is the same class as the locked Sec 4.4 scope note.
+Sub-signal inputs are set from each threat narrative -- what the story says is
+compromised -- and never chosen to hit a target layer score. Layer scores are
+computed by scores.py from those inputs and passed to hybrid_v4.decide().
+
+Every input value is classified in SCENARIO_GROUNDING.md as one of:
+  [GIVEN]  the narrative fixes it (a replayed token has already passed MFA)
+  [FACT]   a binary fact of the threat, citation-backed (an unmanaged host has
+           no enrolled agent and no hardware root of trust)
+  [SWEEP]  a magnitude choice, disclosed as representative and varied in the
+           sensitivity sweep
+
+Scenario B is split into B_mild and B_severe. Under both severities the device
+score stays above the floor (0.733 and 0.603) and both configurations allow
+access. This follows directly from the disclosed device weighting: the hardware
+root of trust (0.30) and the management agent (0.25) together account for 0.55
+of the device score, and neither is removed by a mid-session software-posture
+compromise, so degradation of the soft signals alone cannot drive the layer
+below the floor. The outcome is reported as a limitation of the approach; the
+floor is not lowered and the weights are not changed to produce a detection.
+See Section 3.2.3 and Section 4.4 of the paper.
 """
 import scores
 import hybrid_v4 as hv
@@ -30,9 +29,9 @@ import hybrid_v4 as hv
 # Clean signal ~ 0.9-1.0; degraded ~ 0.5-0.7; compromised ~ 0.0-0.3.
 SUB = {
     # INPUT GROUNDING: every value is classified [GIVEN] (story forces it) / [FACT] (binary
-    # threat fact, cited) / [SWEEP] (magnitude guess, tested by Step-2 sweep) in
+    # threat fact, cited) / [SWEEP] (magnitude guess, tested by the sensitivity sweep) in
     # SCENARIO_GROUNDING.md. Nothing tuned; layer scores are computed outputs. [SWEEP] values
-    # are the ones the sweep must vary to prove robustness.
+    # are the ones the sweep varies to establish robustness.
     # A: session hijack via token exfil. Identity looks valid (token replayed) EXCEPT origin;
     #    device is the compromised layer (exfil host: no agent, bad posture, no hw root).
     "A_session_hijack": {
@@ -92,15 +91,3 @@ def layer_scores(s):
         "device":   scores.score_device(**s["dev"]),
         "network":  scores.score_network(**s["net"]),
     }
-
-print(f"tau={hv.TAU}  floor={hv.FLOOR}")
-print(f"{'scenario':<22}{'S_id':>6}{'S_dev':>7}{'S_net':>7}  | {'COORD':<26}{'BASELINE':<26} gap?")
-print("-"*104)
-for name, s in SUB.items():
-    L = layer_scores(s)
-    cd, cc, cr = hv.decide(L, hv.W_COORD, hv.HARD_COORD)
-    bd, bc, br = hv.decide(L, hv.W_BASE,  hv.HARD_BASE)
-    gap = "COVERAGE GAP" if cd != bd else ("agree" if cd=="ALLOW" else "both ISOLATE")
-    cstr = f"{cd}({cc:.2f})"
-    bstr = f"{bd}({bc:.2f})"
-    print(f"{name:<22}{L['identity']:>6.2f}{L['device']:>7.2f}{L['network']:>7.2f}  | {cstr:<26}{bstr:<26}{gap}")
