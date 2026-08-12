@@ -15,10 +15,15 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 import numpy as np
+from decimal import Decimal, ROUND_HALF_UP
 
 import hybrid_v4 as hv
 from run_scenarios import SUB, layer_scores
 from paper_labels import SCEN_ORDER, PAPER_LABEL, COORD_COLOR, BASE_COLOR
+
+def _fmt3(v):
+    return str(Decimal(str(v)).quantize(Decimal("1.000"), rounding=ROUND_HALF_UP))
+
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "artifacts")
 os.makedirs(OUT, exist_ok=True)
@@ -120,7 +125,7 @@ def figure6():
             solid = (dec == "ISOLATE")
             ax.bar(i + off, val, w, color=col, edgecolor=col, linewidth=1.1,
                    alpha=1.0 if solid else 0.32)
-            ax.text(i + off, val + 0.015, f"{val:.3f}", ha="center",
+            ax.text(i + off, val + 0.015, _fmt3(val), ha="center",
                     va="bottom", fontsize=8.2)
             ax.text(i + off, 0.022, "ISO" if solid else "ALW", ha="center",
                     va="bottom", fontsize=7.8, weight="bold",
